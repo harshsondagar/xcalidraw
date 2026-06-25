@@ -5,8 +5,10 @@ const pencilBtn = document.querySelector(".pencil-btn")
 const ctx = canvas.getContext("2d")
 
 let shapes = []
-
+let selectedSHape = null
 let clicked = false
+let id = 0
+const HANDLE_SIZE = 10
 
 canvas.height = window.innerHeight
 canvas.width = window.innerWidth
@@ -14,6 +16,7 @@ canvas.width = window.innerWidth
 let drawShapeType
 let x = 0
 let y = 0
+let resizing = false
 let pencilPath = []
 
 
@@ -34,18 +37,54 @@ pencilBtn.addEventListener("click", () => {
     console.log(drawShapeType);
 })
 
+function isMouseInsideShape(mouseX, mouseY, shape) {
+    const minX = Math.min(shape.x, shape.x + shape.w)
+    const minY = Math.min(shape.y, shape.y + shape.h)
+    const maxX = Math.max(shape.x, shape.x + shape.w)
+    const maxY = Math.max(shape.y, shape.y + shape.h)
+
+    return mouseX >= minX &&
+        mouseX <= maxX &&
+        mouseY >= minY &&
+        mouseY <= maxY
+}
+
 canvas.addEventListener("mousedown", (e) => {
     clicked = true
-    pencilPath = [] 
+    pencilPath = []
     const rect = canvas.getBoundingClientRect();
 
     x = e.clientX
     y = e.clientY
+
+    if (selectedSHape && isHandleSelected(x, y, selectedSHape)) {
+        resizing = true  // ✅ set once on click
+        return
+    }
+
+    for (let i = 0; i < shapes.length; i++) {
+
+        if (isMouseInsideShape(x, y, shapes[i])) {
+
+            selectedSHape = shapes[i]
+            // resizeShape(selectedSHape)
+            break
+        }
+
+    }
+
 })
+
+
 
 canvas.addEventListener("mousemove", (e) => {
 
     if (!clicked) return
+    if (resizing) {
+        resizeShape(e.clientX, e.clientY, selectedSHape)
+
+        return
+    }
 
     const rect = canvas.getBoundingClientRect();
 
@@ -86,7 +125,16 @@ canvas.addEventListener("mousemove", (e) => {
 })
 
 canvas.addEventListener("mouseup", (e) => {
+    id++;
     clicked = false
+    if (resizing) {
+        resizing = false  // ✅ just stop resizing, don't add new shape
+        drawShape()
+        return
+    }
+
+    resizing = false
+
     const rect = canvas.getBoundingClientRect();
 
     const w = e.clientX - x
@@ -102,16 +150,16 @@ canvas.addEventListener("mouseup", (e) => {
 
     if (drawShapeType === "square") {
         ctx.strokeRect(x, y, w, h)
-        shapes = [...shapes, { type: "square", x, y, w, h }]
+        shapes = [...shapes, { type: "square", id: id, x, y, w, h }]
     } else if (drawShapeType === "circle") {
         const radius = Math.sqrt(w * w + h * h) / 2
         const centerX = x + w / 2
         const centerY = y + h / 2
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
         ctx.stroke()
-        shapes = [...shapes, { type: "circle", x: centerX, y: centerY, radius: radius }]
+        shapes = [...shapes, { type: "circle", id: id, x: centerX, y: centerY, radius: radius }]
     } else if (drawShapeType === "pen") {
-        shapes = [...shapes, { type: "pen", points: pencilPath }]
+        shapes = [...shapes, { type: "pen", id: id, points: pencilPath }]
         drawShape()
     }
 })
@@ -124,10 +172,28 @@ function drawShape() {
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1
         ctx.beginPath()
+        // console.log(shape)
+        if (selectedSHape && selectedSHape.id === shape.id) {
+
+            ctx.strokeStyle = "blue";
+            ctx.lineWidth = 3;
+
+
+            ctx.strokeRect(shape.x, shape.y, shape.w, shape.h);
+            ctx.fillStyle = "blue";
+            ctx.fillRect(
+                shape.x + shape.w - HANDLE_SIZE / 2,
+                shape.y + shape.h - HANDLE_SIZE / 2,
+                HANDLE_SIZE,
+                HANDLE_SIZE
+            );
+
+
+        }
 
         if (shape.type === "square") {
             ctx.strokeRect(shape.x, shape.y, shape.w, shape.h)
-        } else if (shape.type === "circle") {            
+        } else if (shape.type === "circle") {
             console.log(shape.type)
             ctx.arc(shape.x, shape.y, shape.radius, 0, 2 * Math.PI)
             ctx.stroke()
@@ -143,4 +209,20 @@ function drawShape() {
             ctx.stroke()
         }
     })
+}
+
+function resizeShape(x, y, shape) {
+    shape.w = x - shape.x  // no handle coords needed!
+    shape.h = y - shape.y
+    drawShape()
+}
+function isHandleSelected(x, y, shape) {
+
+    const handleX = shape.x + shape.w - HANDLE_SIZE / 2
+    const handleY = shape.y + shape.h - HANDLE_SIZE / 2
+
+    return x >= handleX &&
+        x <= handleX + HANDLE_SIZE &&
+        y >= handleY &&
+        y <= handleY + HANDLE_SIZE
 }
