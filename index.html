@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden; /* no scrollbars */
+        }
+
+        canvas {
+            display: block;
+            background-color: burlywood;
+        }
+
+        .toolbar {
+            position: fixed;  /* ✅ float above canvas */
+            top: 10px;
+            left: 10px;
+            z-index: 10;      /* ✅ stay on top */
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="square-btn">square</button>
+        <button class="circle-btn">circle</button>
+        <button class="pencil-btn">pencil</button>
+    </div>
+    <canvas></canvas>
+    <script src="app.js"></script>
+</body>
+</html>
