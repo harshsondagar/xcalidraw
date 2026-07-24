@@ -47,12 +47,29 @@ selectbtn.addEventListener("click", () => {
 
 function isMouseInsideShape(mouseX, mouseY, shape) {
   if (shape.type === "curve") {
-    // 1. Calculate distance from mouse to the curve's start point
+    // const sx = mouseX - shape.startX;
+    // const sy = mouseY - shape.startY;
+
+    // const disStart = Math.sqrt(sx * sy + sx * sy);
+
+    // if (disStart <= threshold) {
+    //   return { selec: true, start: true };
+    // }
+
+    // const ex = mouseX - shape.x;
+    // const ey = mouseY - shape.y;
+
+    // const disEnd = Math.sqrt(ex * ey + ex * ey);
+
+    // if (disEnd <= threshold) {
+    //   return { selec: true, start: false };
+    // }
+
     const dx = mouseX - shape.handleX;
     const dy = mouseY - shape.handleY;
+
     const distanceToStart = Math.sqrt(dx * dx + dy * dy);
 
-    // 2. Return true if mouse is within the pixel threshold of the start point
     if (distanceToStart <= threshold) {
       return true;
     }
@@ -83,10 +100,13 @@ canvas.addEventListener("mousedown", (e) => {
 
   if (drawShapeType === "select") {
     for (let i = 0; i < shapes.length; i++) {
-      if (isMouseInsideShape(x, y, shapes[i])) {
+      let res = isMouseInsideShape(x, y, shapes[i]);
+      if (res) {
         selectedSHape = shapes[i];
 
-        resizeShape(x, y, selectedSHape);
+        let handle = res.start;
+
+        resizeShape(x, y, selectedSHape, handle);
         break;
       }
     }
@@ -275,7 +295,19 @@ function drawShape() {
       ctx.stroke();
 
       ctx.beginPath();
+      ctx.arc(shape.startX, shape.startY, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "red";
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
       ctx.arc(shape.handleX, shape.handleY, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "red";
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(shape.x, shape.y, 5, 0, 2 * Math.PI);
       ctx.fillStyle = "red";
       ctx.fill();
       ctx.stroke();
@@ -283,8 +315,22 @@ function drawShape() {
   });
 }
 
-function resizeShape(x, y, shape) {
+function resizeShape(x, y, shape, handle) {
   if (shape.type === "curve") {
+    // if (handle) {
+    //   shape.startX = x;
+    //   shape.startY = y;
+    //   drawShape();
+    //   return;
+    // }
+
+    // if (!handle) {
+    //   shape.startX = x;
+    //   shape.startY = y;
+    //   drawShape();
+    //   return;
+    // }
+
     shape.handleX = x;
     shape.handleY = y;
 
